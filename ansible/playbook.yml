@@ -1,0 +1,139 @@
+---
+- name: Déploiement automatique de product-api
+  hosts: vm_ubuntu
+  become: true
+
+  vars:
+    docker_image: "sokhnambayang09/product-api:latest"
+    container_name: "product-api"
+    app_port: 8086
+    mysql_root_password: "root"
+    mysql_database: "productdb"
+    mysql_port: 3306
+
+  tasks:
+
+    - name: Mettre à jour les paquets
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Installer les dépendances Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Vérifier si Docker est installé
+      command: docker --version
+      register: docker_check
+      ignore_errors: true
+
+    - name: Ajouter la clé GPG Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: docker_check.failed
+
+    - name: Ajouter le dépôt Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: docker_check.failed
+
+    - name: Installer Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+      when: docker_check.failed
+
+    - name: Démarrer et activer Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Installer MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Démarrer et activer MySQL
+      systemd:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Installer PyMySQL
+      apt:
+        name: python3-pymysql
+        state: present
+
+    # ✅ login_user et login_password ajoutés
+    - name: Créer la base de données
+      mysql_db:
+        name: "{{ mysql_database }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: Pull l'image Docker
+      docker_image:
+        name: "{{ docker_image }}"
+        source: pull
+        force_source: yes
+
+    - name: Stopper l'ancien conteneur
+      docker_container:
+        name: "{{ container_name }}"
+        state: stopped
+      ignore_errors: true
+
+    - name: Supprimer l'ancien conteneur
+      docker_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Lancer le nouveau conteneur
+      docker_container:
+        name: "{{ container_name }}"
+        image: "{{ docker_image }}"
+        state: started
+        restart_policy: always
+        network_mode: host
+        env:
+          SPRING_DATASOURCE_URL: "jdbc:mysql://127.0.0.1:{{ mysql_port }}/{{ mysql_database }}?createDatabaseIfNotExist=true"
+          SPRING_DATASOURCE_USERNAME: "root"
+          SPRING_DATASOURCE_PASSWORD: "{{ mysql_root_password }}"
+
+    - name: Attendre que l'application démarre
+      wait_for:
+        port: "{{ app_port }}"
+        host: localhost
+        delay: 15
+        timeout: 120
+
+    - name: Vérifier l'endpoint /api/products
+      uri:
+        url: "http://localhost:{{ app_port }}/api/products"
+        method: GET
+        status_code: 200
+      register: api_check
+      retries: 5
+      delay: 10
+      ignore_errors: true
+
+    - name: Afficher le résultat
+      debug:
+        msg: "✅ API OK sur http://localhost:{{ app_port }}/api/products — Status: {{ api_check.status }}"
+      when: api_check is succeeded

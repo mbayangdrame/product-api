@@ -1,0 +1,6 @@
+docker_image: "dockerhub_sokhnambayang09/product-api:latest"
+container_name: "product-api"
+app_port: 8086
+mysql_root_password: "root"
+mysql_database: "productdb"
+mysql_port: 8889
