@@ -29,15 +29,33 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- ✅ Actuator — requis pour /health, /prometheus, probes K8s -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- ✅ Prometheus — expose /actuator/prometheus -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- ✅ Loki — push des logs vers Loki -->
+        <dependency>
+            <groupId>com.github.loki4j</groupId>
+            <artifactId>loki-logback-appender</artifactId>
+            <version>1.4.1</version>
+        </dependency>
+
         <!-- Product Core depuis Nexus -->
         <dependency>
             <groupId>sn.isi.l3gl.core</groupId>
             <artifactId>product-core</artifactId>
             <version>0.3.0</version>
-         </dependency>
+        </dependency>
 
-        <!-- MySQL Driver (requis par product-core) -->
-       <!-- ✅ Nouvel artifact officiel -->
+        <!-- MySQL Driver -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
