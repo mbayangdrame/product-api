@@ -1,6 +1,5 @@
 stages:
   - prepare
-  - test
   - build
   - docker
 
@@ -16,39 +15,32 @@ prepare:
     - apt-get update && apt-get install -y git
     - mkdir -p .m2/repository
 
-    # Cloner product-core
-    - git clone https://gitlab.com/mbayangdrame/product-core.git
+    # ✅ Clone depuis GitHub (public)
+    - git clone https://github.com/mbayangdrame/product-core.git
 
-    # Installer product-core dans le repo local Maven
+    # Installer product-core
     - cd product-core
-    - mvn clean install -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    - mvn clean install -DskipTests
     - cd ..
 
-# ================= TEST =================
-test:
-  stage: test
-  image: maven:3.9-eclipse-temurin-17
-
-  script:
-    - mvn test -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
-
-  dependencies:
-    - prepare
+  artifacts:
+    paths:
+      - .m2/repository
 
 # ================= BUILD =================
 build:
   stage: build
   image: maven:3.9-eclipse-temurin-17
 
+  dependencies:
+    - prepare
+
   script:
-    - mvn clean package -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    - mvn clean package -DskipTests
 
   artifacts:
     paths:
       - target/*.jar
-
-  dependencies:
-    - prepare
 
 # ================= DOCKER =================
 docker:
@@ -57,10 +49,10 @@ docker:
   services:
     - docker:24-dind
 
+  dependencies:
+    - build
+
   script:
     - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     - docker build -t $DOCKER_IMAGE:latest .
     - docker push $DOCKER_IMAGE:latest
-
-  dependencies:
-    - build
