@@ -35,22 +35,23 @@ build:
   script:
     - apt-get update && apt-get install -y git
 
-    # 🔥 Clone product-core
+    # 🔥 Cloner product-core
     - git clone https://gitlab.com/mbayangdrame/product-core.git
 
-    # 🔥 Build + install product-core
+    # 🔥 Vérifier contenu
+    - ls product-core
+
+    # 🔥 Installer product-core dans .m2
     - cd product-core
     - mvn clean install -DskipTests
-    - echo "=== VERIFY INSTALL ==="
-    - ls ~/.m2/repository/sn/isi/l3gl/core/product-core/0.3.0
+
+    # 🔥 Vérification installation réelle
+    - ls ~/.m2/repository/sn/isi/l3gl/core/product-core/0.3.0 || echo "❌ NOT INSTALLED"
+
     - cd ..
 
     # 🔥 Build product-api
     - mvn clean package -DskipTests
-
-  artifacts:
-    paths:
-      - target/*.jar
 
 docker:
   stage: docker
