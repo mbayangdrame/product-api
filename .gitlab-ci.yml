@@ -35,23 +35,17 @@ build:
   script:
     - apt-get update && apt-get install -y git
 
-    # 🔥 Cloner product-core
-    - git clone https://github.com/mbayangdrame/product-core.git
+    # 🔥 Clone product-core
+    - git clone https://gitlab.com/mbayangdrame/product-core.git
 
-    # 🔥 Vérifier
-    - ls
-
-    # 🔥 Build product-core
+    # 🔥 Build + install product-core
     - cd product-core
     - mvn clean install -DskipTests
-
-    # 🔥 Vérifier installation
+    - echo "=== VERIFY INSTALL ==="
     - ls ~/.m2/repository/sn/isi/l3gl/core/product-core/0.3.0
-
-    # 🔥 Retour
     - cd ..
 
-    # 🔥 Build API
+    # 🔥 Build product-api
     - mvn clean package -DskipTests
 
   artifacts:
