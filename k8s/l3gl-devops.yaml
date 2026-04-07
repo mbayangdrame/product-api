@@ -27,7 +27,8 @@ spec:
     spec:
       containers:
         - name: product-api
-          image: mbayangdrame/product-api:latest
+          image: sokhnambayang09/product-api:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8086
           envFrom:
