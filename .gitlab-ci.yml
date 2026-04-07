@@ -1,65 +1,66 @@
 stages:
+  - prepare
   - test
   - build
   - docker
 
 variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
+# ================= PREPARE =================
+prepare:
+  stage: prepare
+  image: maven:3.9-eclipse-temurin-17
+
+  script:
+    - apt-get update && apt-get install -y git
+    - mkdir -p .m2/repository
+
+    # Cloner product-core
+    - git clone https://gitlab.com/mbayangdrame/product-core.git
+
+    # Installer product-core dans le repo local Maven
+    - cd product-core
+    - mvn clean install -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    - cd ..
+
+# ================= TEST =================
 test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
-  script:
-    - mkdir -p ~/.m2
-    - |
-      cat > ~/.m2/settings.xml << EOF
-      <settings>
-        <servers>
-          <server>
-            <id>github</id>
-            <username>mbayangdrame</username>
-            <password>${GITHUB_TOKEN}</password>
-          </server>
-        </servers>
-      </settings>
-      EOF
-    - mvn test -DskipTests
-  cache:
-    paths:
-      - .m2/repository
 
+  script:
+    - mvn test -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+
+  dependencies:
+    - prepare
+
+# ================= BUILD =================
 build:
   stage: build
   image: maven:3.9-eclipse-temurin-17
 
   script:
-    - apt-get update && apt-get install -y git
-
-    # Créer repo Maven local partagé
-    - mkdir -p .m2/repository
-
-    # Config Maven pour utiliser repo local du projet
-    - export MAVEN_OPTS="-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-
-    # Cloner product-core
-    - git clone https://gitlab.com/mbayangdrame/product-core.git
-
-    # Installer product-core
-    - cd product-core
-    - mvn clean install -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
-    - cd ..
-
-    # Build product-api (IMPORTANT: même repo local)
     - mvn clean package -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
 
+  artifacts:
+    paths:
+      - target/*.jar
+
+  dependencies:
+    - prepare
+
+# ================= DOCKER =================
 docker:
   stage: docker
   image: docker:24
   services:
     - docker:24-dind
+
   script:
     - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
     - docker build -t $DOCKER_IMAGE:latest .
     - docker push $DOCKER_IMAGE:latest
+
   dependencies:
     - build
