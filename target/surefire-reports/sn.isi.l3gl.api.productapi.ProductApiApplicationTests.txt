@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: sn.isi.l3gl.api.productapi.ProductApiApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.997 s -- in sn.isi.l3gl.api.productapi.ProductApiApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 10.64 s -- in sn.isi.l3gl.api.productapi.ProductApiApplicationTests
