@@ -57,4 +57,4 @@ docker:
     - echo "PASSWORD_LENGTH=${#DOCKER_PASSWORD}"
     - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
     - docker build -t $DOCKER_IMAGE:latest .
-    - docker push $DOCKER_IMAGE:latest  //ajout des variables d envirronnement pour le login et le push sur le gitlab
+    - docker push $DOCKER_IMAGE:latest
