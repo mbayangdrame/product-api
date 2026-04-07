@@ -31,24 +31,32 @@ test:
 build:
   stage: build
   image: maven:3.9-eclipse-temurin-17
+
   script:
     - apt-get update && apt-get install -y git
 
-    # 👇 Cloner et installer product-core
+    # 🔥 Cloner product-core
     - git clone https://github.com/mbayangdrame/product-core.git
+
+    # 🔥 Vérifier
+    - ls
+
+    # 🔥 Build product-core
     - cd product-core
     - mvn clean install -DskipTests
+
+    # 🔥 Vérifier installation
+    - ls ~/.m2/repository/sn/isi/l3gl/core/product-core/0.3.0
+
+    # 🔥 Retour
     - cd ..
 
-    # 👇 Build ton API
+    # 🔥 Build API
     - mvn clean package -DskipTests
 
   artifacts:
     paths:
       - target/*.jar
-  cache:
-    paths:
-      - .m2/repository
 
 docker:
   stage: docker
