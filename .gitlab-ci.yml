@@ -35,23 +35,22 @@ build:
   script:
     - apt-get update && apt-get install -y git
 
-    # 🔥 Cloner product-core
+    # Créer repo Maven local partagé
+    - mkdir -p .m2/repository
+
+    # Config Maven pour utiliser repo local du projet
+    - export MAVEN_OPTS="-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+    # Cloner product-core
     - git clone https://gitlab.com/mbayangdrame/product-core.git
 
-    # 🔥 Vérifier contenu
-    - ls product-core
-
-    # 🔥 Installer product-core dans .m2
+    # Installer product-core
     - cd product-core
-    - mvn clean install -DskipTests
-
-    # 🔥 Vérification installation réelle
-    - ls ~/.m2/repository/sn/isi/l3gl/core/product-core/0.3.0 || echo "❌ NOT INSTALLED"
-
+    - mvn clean install -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
     - cd ..
 
-    # 🔥 Build product-api
-    - mvn clean package -DskipTests
+    # Build product-api (IMPORTANT: même repo local)
+    - mvn clean package -DskipTests -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
 
 docker:
   stage: docker
