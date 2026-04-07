@@ -10,6 +10,19 @@ test:
   stage: test
   image: maven:3.9-eclipse-temurin-17
   script:
+    - mkdir -p ~/.m2
+    - |
+      cat > ~/.m2/settings.xml << EOF
+      <settings>
+        <servers>
+          <server>
+            <id>github</id>
+            <username>mbayangdrame</username>
+            <password>${GITHUB_TOKEN}</password>
+          </server>
+        </servers>
+      </settings>
+      EOF
     - mvn test -DskipTests
   cache:
     paths:
@@ -19,7 +32,17 @@ build:
   stage: build
   image: maven:3.9-eclipse-temurin-17
   script:
-    - mvn package -DskipTests
+    - apt-get update && apt-get install -y git
+
+    # 👇 Cloner et installer product-core
+    - git clone https://github.com/mbayangdrame/product-core.git
+    - cd product-core
+    - mvn clean install -DskipTests
+    - cd ..
+
+    # 👇 Build ton API
+    - mvn clean package -DskipTests
+
   artifacts:
     paths:
       - target/*.jar
