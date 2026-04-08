@@ -4,11 +4,11 @@ metadata:
   name: product-api-config
   namespace: devops-l3gl
 data:
-  DB_HOST: "mysql-service"
-  DB_PORT: "3306"
-  DB_NAME: "productdb"
-  DB_USER: "root"
-  LOKI_URL: "192.168.X.X"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/productdb?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC"
+  SPRING_DATASOURCE_USERNAME: "root"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.MySQL8Dialect"
+  LOKI_URL: "http://loki:3100"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,12 +34,6 @@ spec:
           envFrom:
             - configMapRef:
                 name: product-api-config
-          env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_ROOT_PASSWORD
           resources:
             requests:
               cpu: "200m"

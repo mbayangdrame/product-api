@@ -9,6 +9,8 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana:latest
@@ -22,6 +24,8 @@ services:
       - prometheus
       - loki
     restart: always
+    networks:
+      - monitoring
 
   loki:
     image: grafana/loki:2.9.0
@@ -30,3 +34,22 @@ services:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     restart: always
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/docker-config.yaml
+    restart: always
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+
+networks:
+  monitoring:
+    driver: bridge
